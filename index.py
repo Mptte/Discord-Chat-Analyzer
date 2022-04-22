@@ -3,12 +3,29 @@ import sys
 from nltk.sentiment import SentimentIntensityAnalyzer
 import tkinter as tk
 from tkinter import filedialog
+from stripjson import filepicker
+
+
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
+
 g = False
 while g == False:
+    print(bcolors.BOLD + bcolors.OKBLUE +
+          "Chat Sentiment Analyzer \n ---------------------")
     print("""
     Open File Explorer: E
     Close Process: Q
-    Validate JSON: 
+    Validate JSON:J
     """)
     m = input("Enter an option:")
     if(m.lower() == 'e'):
@@ -22,6 +39,8 @@ while g == False:
         print(file_path)
     if(m.lower() == 'q'):
         sys.exit()
+    if(m.lower() == 'j'):
+        filepicker()
 
 
 sia = SentimentIntensityAnalyzer()
