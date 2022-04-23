@@ -1,9 +1,11 @@
 import json
+from statistics import mode
 import sys
 from nltk.sentiment import SentimentIntensityAnalyzer
 import tkinter as tk
 from tkinter import filedialog
-from stripjson import filepicker
+from utils import stripjson, filepicker, mostFrequentWord
+filtered_data, sentences, words = [], [], []
 
 
 class bcolors:
@@ -18,63 +20,60 @@ class bcolors:
     UNDERLINE = '\033[4m'
 
 
+file_path = ''
 g = False
 while g == False:
-    print(bcolors.BOLD + bcolors.OKBLUE +
-          "Chat Sentiment Analyzer \n ---------------------")
+    print(
+        "\nChat Sentiment Analyzer \n ---------------------")
     print("""
-    Open File Explorer: E
+    Select File: E
+    Sentiment Analysis:S
+    Find out the most used word:B
     Close Process: Q
     Validate JSON:J
     """)
+    print("Selected file: ", bcolors.WARNING + file_path + bcolors.ENDC)
+
     m = input("Enter an option:")
     if(m.lower() == 'e'):
-        root = tk.Tk()
-        root.attributes('-topmost', True)
-        root.update()
-        root.withdraw()
-        g = True
+        file_path = filepicker()
+        with open(file_path, encoding='utf-8') as f:
+            data = json.loads(f.read())
+        for x in data["messages"]:
+            filtered_data.append(x)
 
-        file_path = filedialog.askopenfilename()
-        print(file_path)
     if(m.lower() == 'q'):
         sys.exit()
     if(m.lower() == 'j'):
-        filepicker()
+        stripjson(file_path)
+    # if(m.lower() == 'b'):
+    #    for x in filtered_data:
+    #        sentences.append(x["msg"])
 
+    #   print("Most used word is:" + str(mostFrequentWord(sentences)["word"]))
 
-sia = SentimentIntensityAnalyzer()
+    if(m.lower() == 's'):
+        sia = SentimentIntensityAnalyzer()
+        sia.lexicon_file = 'vader.txt'
 
-filtered_data = []
-positive, negative, neutral = 0, 0, 0
+        positive, negative, neutral = 0, 0, 0
 
+        x = True
 
-x = True
-with open(file_path, encoding='utf-8') as f:
-    data = json.loads(f.read())
+        for x in range(len(filtered_data)):
 
+            if(sia.polarity_scores(filtered_data[x]["msg"])["neu"] == 1.0):
+                neutral += 1
+                pass
+            if(sia.polarity_scores(filtered_data[x]["msg"])["pos"] > sia.polarity_scores(filtered_data[x]["msg"])["neg"]):
+                positive += 1
+            else:
+                negative += 1
 
-for x in data["messages"]:
-    filtered_data.append(x)
-
-
-for x in range(len(filtered_data)):
-    # print(str(sia.polarity_scores(
-    #   filtered_data[x]["msg"])) + filtered_data[x]["msg"])
-
-    if(sia.polarity_scores(filtered_data[x]["msg"])["neu"] == 1.0):
-        neutral += 1
-        pass
-    if(sia.polarity_scores(filtered_data[x]["msg"])["pos"] > sia.polarity_scores(filtered_data[x]["msg"])["neg"]):
-        positive += 1
-    else:
-        negative += 1
-
-
-print("Testing neutrality!")
-print("Negativity:" +
-      str(round((negative/(positive+negative+neutral))*100)) + "%" + " Negative: ", negative)
-print("Positivity:" +
-      str(round((positive/(positive+negative+neutral))*100)) + "%"+"Postives: ", positive)
-print("Neutrality:" +
-      str(round((neutral/(positive+negative+neutral))*100)) + "%"+" Neutral:", neutral)
+        print("Testing neutrality!")
+        print("Negativity:" +
+              str(round((negative/(positive+negative+neutral))*100)) + "%" + " Negative: ", negative)
+        print("Positivity:" +
+              str(round((positive/(positive+negative+neutral))*100)) + "%"+"Postives: ", positive)
+        print("Neutrality:" +
+              str(round((neutral/(positive+negative+neutral))*100)) + "%"+" Neutral:", neutral)
